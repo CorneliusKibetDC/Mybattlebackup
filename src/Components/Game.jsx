@@ -253,22 +253,40 @@ function Game() {
   const [opponentShips, setOpponentShips] = useState([]);
   const [gameOver, setGameOver] = useState(false);
 
-  // Handle placing ships on the player's board
-  const handlePlaceShip = (coordinates, length) => {
+// Handle placing ships on the player's board
+const handlePlaceShip = (coordinates, length) => {
+  if (shipsToPlace.includes(length)) {
     if (checkShipPlacementValid(playerBoard, coordinates, length)) {
       const updatedBoard = placeShipOnBoard(playerBoard, coordinates, length);
       setPlayerBoard(updatedBoard);
       setPlayerShips([...playerShips, { coordinates, length }]);
-      setShipsToPlace(shipsToPlace.filter((shipLength) => shipLength !== length)); // Remove placed ship from the list
-
-      if (shipsToPlace.length === 1) {
-        setPhase("gameplay");
-        setOpponentShips(generateOpponentShips());
-      }
-    } else {
-      alert("Invalid ship placement");
+          // Remove the first occurrence of the placed ship size
+  setShipsToPlace((prevShipsToPlace) => {
+    const updatedShips = [...prevShipsToPlace];
+    const index = updatedShips.indexOf(length);
+    if (index > -1) {
+      updatedShips.splice(index, 1);
     }
-  };
+    return updatedShips;
+  });
+
+// After placing the two ships of size 3, move to size 2
+if (shipsToPlace.filter((size) => size === 3).length === 0) {
+if (shipsToPlace.includes(2)) {
+  // Proceed to next ship size (size 2)
+}
+}
+
+if (shipsToPlace.length === 1) {
+  setPhase("gameplay");
+  setOpponentShips(generateOpponentShips());
+}
+} else {
+  alert("Invalid ship placement");
+}
+}
+};
+
 
   // Generate random ships for the opponent
   const generateOpponentShips = () => {
@@ -315,20 +333,22 @@ function Game() {
     );
   };
 
-  // Check if the game is over
-  const checkGameOver = () => {
-    const isPlayerShipsSunk = playerShips.every((ship) =>
-      ship.coordinates.every(([x, y]) => playerBoard[x][y].hit)
-    );
-    const isOpponentShipsSunk = opponentShips.every((ship) =>
-      ship.coordinates.every(([x, y]) => opponentBoard[x][y].hit)
-    );
+const [winner, setWinner] = useState(""); // New state for storing winner
 
-    if (isPlayerShipsSunk || isOpponentShipsSunk) {
-      setGameOver(true);
-      console.log(isPlayerShipsSunk ? "Opponent Wins!" : "Player Wins!");
-    }
-  };
+// Check if the game is over
+const checkGameOver = () => {
+  const isPlayerShipsSunk = playerShips.every((ship) =>
+    ship.coordinates.every(([x, y]) => playerBoard[x][y].hit)
+  );
+  const isOpponentShipsSunk = opponentShips.every((ship) =>
+    ship.coordinates.every(([x, y]) => opponentBoard[x][y].hit)
+  );
+
+  if (isPlayerShipsSunk || isOpponentShipsSunk) {
+    setGameOver(true);
+    setWinner(isPlayerShipsSunk ? "Opponent Wins!" : "Player Wins!"); // Set winner instead of console logging
+  }
+};
 
   // Opponent randomly selects a target after the player's turn
   useEffect(() => {
@@ -342,6 +362,7 @@ function Game() {
   }, [turn]);
 
   return (
+    <>
     <div style={{ display: "flex", justifyContent: "space-between" }}>
       <div style={{ marginBottom: "20px", textAlign: "center" }}>
         <h2>{turn === "player" ? "Your Turn" : "Opponent's Turn"}</h2>
@@ -354,8 +375,18 @@ function Game() {
           shipsToPlace={shipsToPlace}
         />
       ) : (
-        <div style={{ display: "flex" }}>
+        /*<div style={{ display: "flex" }}>
           <div style={{ marginRight: "20px" }}>
+            <h2>Your Board</h2>
+            <Board board={playerBoard} onCellClick={handleTakeTurn} isPlayer />
+          </div>
+          <div>
+            <h2>Opponent's Board</h2>
+            <Board board={opponentBoard} onCellClick={handleTakeTurn} />
+          </div>
+        </div>*/
+        <div style={{ display: "flex", justifyContent: "center", gap: "30px" }}>
+          <div>
             <h2>Your Board</h2>
             <Board board={playerBoard} onCellClick={handleTakeTurn} isPlayer />
           </div>
@@ -366,7 +397,33 @@ function Game() {
         </div>
       )}
     </div>
+
+
+  <div style={{ display: "flex", justifyContent: "space-between", position: "relative" }}>
+    {gameOver && (
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        color: "white",
+        padding: "20px",
+        fontSize: "2rem",
+        textAlign: "center",
+        borderRadius: "8px"
+      }}>
+        <h1>GAME OVER</h1>
+        <p>{winner}</p>
+      </div>
+    )}
+   
+  </div>
+
+
+    </>
   );
 }
 
 export default Game;
+

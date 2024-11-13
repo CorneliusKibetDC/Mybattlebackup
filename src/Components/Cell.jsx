@@ -1,65 +1,10 @@
-/*
-import React from "react";
-
-function Cell({ x, y, cell, onClick, isPlayer }) {
-  let cellStyle = {};
-  if (cell.hit) {
-    cellStyle.backgroundColor = "red"; // Hit
-  } else if (cell.ship) {
-    cellStyle.backgroundColor = "gray"; // Ship is hidden
-  } else {
-    cellStyle.backgroundColor = "lightblue"; // Empty
-  }
-
-  return (
-    <div
-      className="cell"
-      style={cellStyle}
-      onClick={() => onClick(x, y)}
-    ></div>
-  );
-}
-
-export default Cell;
 
 
+import React, { useEffect } from "react";
 
-
-
-
-
-import React from "react";
-
-function Cell({ cell, onClick, isPlayer, hitMissIndicators }) {
-  // Safeguard to ensure cell is defined before accessing its properties
-  if (!cell) {
-    return <div className="cell" onClick={onClick}></div>;
-  }
-
-  const handleClick = () => {
-    if (!cell.hit) onClick(); // Only allow click if the cell is not already hit
-  };
-
-  // Determine if the cell is hit or missed
-  const cellClass = cell.hit ? (cell.ship ? "hit" : "miss") : "";
-
-  return (
-    <div
-      className={`cell ${cellClass}`}
-      onClick={handleClick}
-    >
-     =
-      {isPlayer && cell.ship ? "🚢" : ""}
-    </div>
-  );
-}
-
-export default Cell;*/
-
-
-
-import React from "react";
-
+// Import sound files
+import explosionSound from "../assets/explosion1.mp3"; // Adjust the path to where the sound file is stored
+import splashSound from "../assets/splash.mp3"; // New splash sound file for a miss
 
 function Cell({ x, y, cell, onClick, isPlayer }) {
   let cellStyle = {};
@@ -67,19 +12,32 @@ function Cell({ x, y, cell, onClick, isPlayer }) {
   if (cell.hit) {
     cellStyle.backgroundColor = "red"; // Hit
   } else if (cell.miss) {
-    cellStyle.backgroundColor = "green"; // Missed shot (green)
+    cellStyle.backgroundColor = "green"; // Missed shot
   } else if (cell.ship && isPlayer) {
     cellStyle.backgroundColor = "gray"; // Player's ship is visible during placement
   } else {
     cellStyle.backgroundColor = "lightblue"; // Empty space
   }
 
+  // Play explosion sound on hit
+  useEffect(() => {
+    if (cell.hit) {
+      const audio = new Audio(explosionSound);
+      audio.play();
+    } else if (cell.miss) { // Play splash sound for miss
+      const audio = new Audio(splashSound);
+      audio.play();
+    }
+  }, [cell.hit, cell.miss]);
+
   return (
     <div
       className="cell"
       style={cellStyle}
-      onClick={() => onClick(x, y)}
-    ></div>
+      onClick={!isPlayer ? () => onClick(x, y) : undefined} // Only clickable on the opponent's board
+    >
+      {cell.hit ? "🔥" : cell.ship && isPlayer ? "🚢" : ""} {/* Fire icon for hits, ship icon for player's ship */}
+    </div>
   );
 }
 
